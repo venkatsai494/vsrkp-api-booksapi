@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "name": "BooksAPI",
+  "name": "vsrkp-api-booksapi",
   "type": "collection",
   "ignore": [
     "node_modules",
