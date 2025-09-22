@@ -1,13 +1,17 @@
 meta {
-  name: statusOfAPI
+  name: bookById
   type: http
-  seq: 1
+  seq: 4
 }
 
 get {
-  url: {{BASE_URL}}/status
+  url: {{BASE_URL}}/books/{{bookId}}
   body: none
   auth: inherit
+}
+
+script:pre-request {
+  bru.setVar("bookId","1");
 }
 
 settings {
