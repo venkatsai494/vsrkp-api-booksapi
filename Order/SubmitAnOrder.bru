@@ -1,0 +1,15 @@
+meta {
+  name: SubmitAnOrder
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BASE_URL}}/orders
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}
