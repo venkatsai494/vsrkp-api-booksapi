@@ -10,8 +10,17 @@ get {
   auth: inherit
 }
 
+assert {
+  res.status: eq 200
+  res.body.status: eq OK
+}
+
 script:post-response {
-  test("Status Code is 200", ()=>{expect(res.status).toBe(200);});
+  test("Status Code is 200", ()=>{expect(res.getStatus()).to.equal(200);});
+  
+  test("Body contains the status value as OK", ()=>{
+    expect(res.body.status).to.equal("OK");
+  });
 }
 
 settings {
