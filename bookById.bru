@@ -10,12 +10,17 @@ get {
   auth: inherit
 }
 
+vars:pre-request {
+  bookId: 1
+}
+
 script:pre-request {
   bru.setVar("bookId","1");
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }
 
 docs {

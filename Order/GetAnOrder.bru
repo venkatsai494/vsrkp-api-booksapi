@@ -1,11 +1,11 @@
 meta {
-  name: GetAllOrdersAfterSubmission
+  name: GetAnOrder
   type: http
-  seq: 4
+  seq: 3
 }
 
 get {
-  url: {{BASE_URL}}/orders
+  url: {{BASE_URL}}/orders/{{orderId}}
   body: none
   auth: bearer
 }
