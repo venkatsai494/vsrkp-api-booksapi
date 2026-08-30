@@ -1,7 +1,7 @@
 meta {
   name: bookById
   type: http
-  seq: 4
+  seq: 5
 }
 
 get {
@@ -11,18 +11,11 @@ get {
 }
 
 vars:pre-request {
-  bookId: 1
-}
-
-script:pre-request {
-  bru.setVar("bookId","1");
+  bookId: 3
 }
 
 settings {
   encodeUrl: true
   timeout: 0
-}
-
-docs {
-  I am using the documentation of https://github.com/vdespa/introduction-to-postman-course/blob/main/simple-books-api.md
+  forwardAuthorizationHeader: false
 }
