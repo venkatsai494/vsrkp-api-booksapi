@@ -1,17 +1,13 @@
 meta {
-  name: GetAllOrdersAfterSubmission
+  name: OrderAvailableBook
   type: http
-  seq: 5
+  seq: 2
 }
 
-get {
+post {
   url: {{BASE_URL}}/orders
   body: none
-  auth: bearer
-}
-
-auth:bearer {
-  token: {{token}}
+  auth: inherit
 }
 
 settings {
