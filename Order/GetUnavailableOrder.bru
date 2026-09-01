@@ -1,17 +1,21 @@
 meta {
-  name: GetAllOrdersAfterSubmission
+  name: GetUnavailableOrder
   type: http
-  seq: 6
+  seq: 5
 }
 
 get {
-  url: {{BASE_URL}}/orders
+  url: {{BASE_URL}}/orders/{{orderId}}
   body: none
   auth: bearer
 }
 
 auth:bearer {
   token: {{token}}
+}
+
+vars:pre-request {
+  orderId: 
 }
 
 settings {
