@@ -10,6 +10,31 @@ get {
   auth: inherit
 }
 
+script:post-response {
+  const books = res.getBody();
+  
+  const availableBooks = books.filter(book => book.available === true);
+  const unAvailableBooks = books.filter(book => book.available === false);
+  
+  if (availableBooks.length > 0) {
+    const availableRandomBook = availableBooks[
+      Math.floor(Math.random() * availableBooks.length)
+    ];
+  
+    bru.setEnvVar("availableBookId", availableRandomBook.id);
+    bru.setEnvVar("availableBookName", availableRandomBook.name);
+  }
+  
+  if (unAvailableBooks.length > 0) {
+    const unAvailableRandomBook = unAvailableBooks[
+      Math.floor(Math.random() * unAvailableBooks.length)
+    ];
+  
+    bru.setEnvVar("unAvailableBookId", unAvailableRandomBook.id);
+    bru.setEnvVar("unAvailableBookName", unAvailableRandomBook.name);
+  }
+}
+
 settings {
   encodeUrl: true
   timeout: 0
