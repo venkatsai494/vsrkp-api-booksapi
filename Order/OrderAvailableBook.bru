@@ -6,12 +6,19 @@ meta {
 
 post {
   url: {{BASE_URL}}/orders
-  body: none
+  body: json
   auth: bearer
 }
 
 auth:bearer {
   token: {{token}}
+}
+
+body:json {
+  {
+    "bookId": {{availableBookId}},
+    "customerName": "John"
+  }
 }
 
 settings {
