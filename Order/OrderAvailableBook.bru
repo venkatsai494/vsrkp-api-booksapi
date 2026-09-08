@@ -17,8 +17,17 @@ auth:bearer {
 body:json {
   {
     "bookId": {{availableBookId}},
-    "customerName": "John"
+    "customerName": {{$randomFullName}}
   }
+}
+
+vars:post-response {
+  orderId: res.body.orderId
+}
+
+script:pre-request {
+  const customerName = faker.person.fullName();
+  bru.setEnvVar("customerName", customerName);
 }
 
 settings {
