@@ -17,12 +17,16 @@ auth:bearer {
 body:json {
   {
     "bookId": {{availableBookId}},
-    "customerName": {{$randomFullName}}
+    "customerName": "{{$randomFullName}}"
   }
 }
 
 vars:post-response {
   orderId: res.body.orderId
+}
+
+assert {
+  res.status: eq 201
 }
 
 settings {
