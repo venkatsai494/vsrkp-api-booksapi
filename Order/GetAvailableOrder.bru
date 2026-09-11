@@ -18,6 +18,10 @@ vars:pre-request {
   orderId: 
 }
 
+assert {
+  res.body.bookId: eq {{availableBookId}}
+}
+
 settings {
   encodeUrl: true
   timeout: 0
