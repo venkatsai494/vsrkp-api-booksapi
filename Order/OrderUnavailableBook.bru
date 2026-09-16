@@ -21,6 +21,11 @@ body:json {
   }
 }
 
+assert {
+  res.status: eq 404
+  res.body.error: eq "This book is not in stock. Try again later."
+}
+
 settings {
   encodeUrl: true
   timeout: 0
