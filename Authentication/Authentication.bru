@@ -12,8 +12,8 @@ post {
 
 body:json {
   {
-     "clientName": "Postman_{{randomString}}",
-     "clientEmail": "test_{{randomString}}@example.com"
+     "clientName": "${{$randomFullName}}",
+     "clientEmail": "${{$randomEmail}}"
   }
 }
 
