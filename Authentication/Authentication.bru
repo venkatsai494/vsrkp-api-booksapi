@@ -21,9 +21,13 @@ vars:post-response {
   token: res.body.accessToken
 }
 
+assert {
+  res.status: eq 201
+}
+
 script:pre-request {
-  const randomStr = Date.now() + '_' + Math.random.toString(36).substring(2,6);
-  bru.setEnvVar("randomString", randomStr);
+  // const randomStr = Date.now() + '_' + Math.random.toString(36).substring(2,6);
+  // bru.setEnvVar("randomString", randomStr);
 }
 
 settings {
