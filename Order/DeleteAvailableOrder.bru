@@ -1,0 +1,28 @@
+meta {
+  name: DeleteAvailableOrder
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{BASE_URL}}/orders/{{orderId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+vars:pre-request {
+  orderId: 
+}
+
+assert {
+  res.body.bookId: eq {{availableBookId}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
