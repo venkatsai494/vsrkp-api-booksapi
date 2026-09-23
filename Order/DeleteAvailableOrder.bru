@@ -19,7 +19,7 @@ vars:pre-request {
 }
 
 assert {
-  res.body.bookId: eq {{availableBookId}}
+  res.status: eq 204
 }
 
 settings {
