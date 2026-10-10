@@ -13,6 +13,7 @@ get {
 assert {
   res.status: eq 200
   res.body.status: eq OK
+  Object.keys(res.body): length 1
 }
 
 script:post-response {
