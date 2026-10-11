@@ -23,6 +23,7 @@ vars:post-response {
 
 assert {
   res.status: eq 201
+  res.body.accessToken: length 64
 }
 
 script:pre-request {
