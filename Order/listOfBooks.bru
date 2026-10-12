@@ -10,6 +10,11 @@ get {
   auth: inherit
 }
 
+assert {
+  res.status: eq 200
+  Object.keys(res.body): length 6
+}
+
 script:post-response {
   const books = res.getBody();
   
