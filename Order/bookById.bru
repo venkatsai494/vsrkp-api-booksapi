@@ -14,6 +14,13 @@ vars:pre-request {
   bookId: 3
 }
 
+assert {
+  res.status: eq 200
+  res.body.id: eq 5
+  res.body.PK: eq BOOK#{{availableBookId}}
+  res.body.GSI1SK: contains {{availableBookId}}
+}
+
 settings {
   encodeUrl: true
   timeout: 0
