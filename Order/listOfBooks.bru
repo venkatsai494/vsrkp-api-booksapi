@@ -46,5 +46,17 @@ settings {
 }
 
 docs {
-  I am using the documentation of https://github.com/vdespa/introduction-to-postman-course/blob/main/simple-books-api.md
+  This request retrieves the list of all the books. This request uses the access token which was generated in the Authentication request as a bearer token for authentication.
+  
+  \
+  Script:
+  
+  We would be taking any two random books one which is available and one which is unavailable which would be stored as environment variable so that they can be used in subsequent requests
+  
+  <br/>
+  
+  Assertions:
+  
+  - We are asserting the request with http status code as 200
+  - Number of objects or books present in the response json using Object.keys(res.body)
 }
