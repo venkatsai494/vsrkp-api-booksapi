@@ -10,10 +10,6 @@ get {
   auth: inherit
 }
 
-vars:pre-request {
-  bookId: 3
-}
-
 assert {
   res.status: eq 200
   res.body.id: eq 5
@@ -25,4 +21,15 @@ settings {
   encodeUrl: true
   timeout: 0
   forwardAuthorizationHeader: false
+}
+
+docs {
+  This request retrieves the details of book with book Id. This request uses the environment variable 'availableBookId' which was captured in previous request. This request uses the access token which was generated in the Authentication request as a bearer token for authentication.
+  
+  <br/>
+  
+  Assertions:
+  
+  - We are asserting the request with http status code as 200
+  - Also it asserts the dynamic value of availableBookId in the field values of 'GSI1SK' and 'PK' in the response using contains or equals operator
 }
