@@ -27,9 +27,27 @@ vars:post-response {
 
 assert {
   res.status: eq 201
+  res.body.created: eq true
 }
 
 settings {
   encodeUrl: true
   timeout: 0
+}
+
+docs {
+  This request creates an order with the available book. This request uses the access token which was generated in the Authentication request as a bearer token for authentication.
+  
+  <br/>
+  
+  Variable:
+  
+  We are capturing the oder id from the response to be used in the subsequent requests
+  
+  <br/>
+  
+  Assertions:
+  
+  - We are asserting the request with http status code as 201
+  - Also we are checking if the created key in the response has true value
 }
