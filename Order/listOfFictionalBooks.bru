@@ -1,0 +1,35 @@
+meta {
+  name: listOfFictionalBooks
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BASE_URL}}/books?type=fiction
+  body: none
+  auth: inherit
+}
+
+params:query {
+  type: fiction
+}
+
+assert {
+  res.status: eq 200
+  Object.keys(res.body): length 4
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+docs {
+  This request retrieves the list of fictional books. This request uses the access token which was generated in the Authentication request as a bearer token for authentication.
+  
+  \
+  Assertions:
+  
+  - We are asserting the request with http status code as 200
+  - Number of objects or books present in the response json using Object.keys(res.body)
+}
