@@ -6,3 +6,564 @@ meta {
 auth {
   mode: inherit
 }
+
+docs {
+  The [Simple Books API documentation on GitHub](https://github.com/vdespa/introduction-to-postman-course/blob/main/simple-books-api.md?utm_source=chatgpt.com) is an excellent project for practicing API testing in Bruno, from basic GET requests to authentication, negative testing, request chaining, and CRUD operations.
+  
+  The API supports checking its status, listing books, retrieving individual books, registering API clients, and creating, viewing, updating, and deleting book orders.
+  
+  ![](https://www.google.com/s2/favicons?domain=https://github.com&sz=32)
+  
+  GitHub
+  
+  +1
+  
+  <br/>
+  
+  I'll organize the scenarios as a practical API test suite you can implement in Bruno, including positive tests, negative tests, boundary-value tests, and automation opportunities.
+  
+  # 1. Complete scenario checklist
+  
+  Base URL: `https://simple-books-api.click`
+  
+  ## Test plan
+  
+  0/56 completed
+  
+  ### 1. API health
+  
+  API status returns success
+  
+  Response body and status fields are valid
+  
+  ### 2. Books listing
+  
+  Get all books
+  
+  Filter fiction books
+  
+  Filter non-fiction books
+  
+  Use minimum limit: 1
+  
+  Use maximum limit: 20
+  
+  Test limit 0
+  
+  Test limit 21
+  
+  Test negative, decimal, and non-numeric limits
+  
+  Test invalid book type
+  
+  Test missing or empty query values
+  
+  ### 3. Single book
+  
+  Retrieve a valid book ID
+  
+  Check returned ID matches the requested ID
+  
+  Test nonexistent ID
+  
+  Test zero and negative IDs
+  
+  Test alphabetic, decimal, and special-character IDs
+  
+  ### 4. Authentication
+  
+  Register a new API client
+  
+  Save token from response to environment
+  
+  Register same email again
+  
+  Test invalid email
+  
+  Test missing or empty clientName/clientEmail
+  
+  Call protected endpoint without token
+  
+  Call with malformed or invalid token
+  
+  Call with expired token, if testable
+  
+  ### 5. Create order
+  
+  Create order with valid in-stock book
+  
+  Check order ID in response
+  
+  Test missing bookId
+  
+  Test missing customerName
+  
+  Test null, string, decimal, zero, or negative bookId
+  
+  Test nonexistent book ID
+  
+  Test out-of-stock book
+  
+  Test empty or wrong data types
+  
+  ### 6. Read orders
+  
+  Get all orders
+  
+  Get a specific existing order
+  
+  Test nonexistent order ID
+  
+  Test malformed order ID
+  
+  Check orders require authentication
+  
+  ### 7. Update order
+  
+  Update customerName
+  
+  Verify change with GET order
+  
+  Test empty update body
+  
+  Test missing customerName
+  
+  Test null or wrong type
+  
+  Test nonexistent order ID
+  
+  Test update without authentication
+  
+  ### 8. Delete order
+  
+  Delete an existing order
+  
+  Verify deletion with GET order
+  
+  Test deleting the same order twice
+  
+  Test nonexistent order ID
+  
+  Test deletion without authentication
+  
+  ### 9. End-to-end and quality
+  
+  Create and use a token dynamically
+  
+  Create an order and reuse its order ID
+  
+  Update and verify the order
+  
+  Delete and verify the order is gone
+  
+  Check response times and JSON content type
+  
+  Run the collection repeatedly without hardcoded IDs
+  
+  Copy complete checklist
+  
+  Important: This is a proposed test plan, not a claim that every negative case will return a particular status code. The documentation explicitly specifies the allowed book types, limit range, required order fields, authentication requirements, and duplicate client registration response. For other invalid inputs, observe the actual API behavior and assert against the contract you establish.
+  
+  # 2. Detailed scenarios by endpoint
+  
+  ## A. API health — `GET /status`
+  
+  Positive testing
+  
+  | ID | Scenario | Expected result |
+  | --- | --- | --- |
+  | HL-01 | Send GET `/status` | HTTP 200 |
+  | HL-02 | Validate response structure | Contains the documented status field |
+  | HL-03 | Validate response time | Within your chosen threshold, e.g. 2 seconds |
+  | HL-04 | Send request repeatedly | No unexpected failures |
+  
+  Example Bruno test script:
+  
+  ```
+  test("API status returns 200", function () {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response contains status", function () {
+    expect(res.body).to.have.property("status");
+  });
+  ```
+  
+  The response-time threshold is your own performance criterion, not a guarantee made by the API documentation.
+  
+  ## B. List books — `GET /books`
+  
+  This endpoint is particularly useful for query-parameter and boundary testing.
+  
+  | ID | Request | What to validate |
+  | --- | --- | --- |
+  | BK-01 | `/books` | Returns a list of books |
+  | BK-02 | `/books?type=fiction` | Every returned book has type `fiction` |
+  | BK-03 | `/books?type=non-fiction` | Every returned book has type `non-fiction` |
+  | BK-04 | `/books?limit=1` | No more than one result |
+  | BK-05 | `/books?limit=20` | No more than 20 results |
+  | BK-06 | `/books?limit=0` | Observe and document validation behavior |
+  | BK-07 | `/books?limit=21` | Observe behavior outside the documented range |
+  | BK-08 | `/books?limit=-1` | Validate rejection or documented handling |
+  | BK-09 | `/books?limit=abc` | Test non-numeric input |
+  | BK-10 | `/books?type=invalid` | Test an unsupported type |
+  | BK-11 | `/books?type=fiction&limit=5` | Both filters work together |
+  
+  Example assertions:
+  
+  ```
+  test("Books response is an array", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body).to.be.an("array");
+  });
+  
+  test("All returned books are fiction", function () {
+    expect(res.body.every(book => book.type === "fiction"))
+      .to.equal(true);
+  });
+  
+  test("Book count does not exceed requested limit", function () {
+    expect(res.body.length).to.be.at.most(5);
+  });
+  ```
+  
+  For invalid query parameters, do not automatically expect HTTP 400 unless the API actually specifies that contract. Your test should capture the observed response and distinguish documented behavior from a possible defect.
+  
+  ## C. Retrieve one book — `GET /books/:bookId`
+  
+  | ID | Scenario | Expected validation |
+  | --- | --- | --- |
+  | BK-12 | Get a known valid ID | HTTP 200 and valid book details |
+  | BK-13 | Verify returned ID | Matches the requested ID |
+  | BK-14 | Get a nonexistent ID | Typically expect HTTP 404; verify actual behavior |
+  | BK-15 | Use ID `0` | Validate invalid-ID handling |
+  | BK-16 | Use ID `-1` | Validate invalid-ID handling |
+  | BK-17 | Use an alphabetic ID | Validate path-parameter handling |
+  | BK-18 | Use a decimal or special-character ID | Validate rejection or handling |
+  
+  Example:
+  
+  ```
+  test("Returned book has the requested ID", function () {
+    expect(res.body.id).to.equal(2);
+  });
+  
+  test("Book has required fields", function () {
+    expect(res.body).to.have.property("id");
+    expect(res.body).to.have.property("name");
+    expect(res.body).to.have.property("type");
+    expect(res.body).to.have.property("available");
+  });
+  ```
+  
+  Replace `2` with the actual ID requested by that Bruno request. For a reusable test, you can compare the returned ID against the ID stored in a Bruno variable.
+  
+  ## D. Register an API client — `POST /api-clients/`
+  
+  This endpoint is important because the resulting token is needed for order operations.
+  
+  Example request:
+  
+  ```
+  {
+    "clientName": "Bruno API Tester",
+    "clientEmail": "unique-email@example.com"
+  }
+  ```
+  
+  | ID | Scenario | Expected validation |
+  | --- | --- | --- |
+  | AU-01 | Register a new client | Successful registration |
+  | AU-02 | Validate token field | Response contains a non-empty access token |
+  | AU-03 | Register the same client/email again | HTTP 409, according to documentation |
+  | AU-04 | Omit `clientName` | Validate input handling |
+  | AU-05 | Omit `clientEmail` | Validate input handling |
+  | AU-06 | Send empty values | Validate input handling |
+  | AU-07 | Send malformed email | Observe validation behavior |
+  | AU-08 | Send invalid JSON | Validate request parsing behavior |
+  | AU-09 | Reuse token for protected endpoint | Authentication succeeds |
+  | AU-10 | Send a missing or invalid token | Authentication is rejected |
+  
+  The API documents a 409 response when a client is already registered. Its token is valid for seven days.
+  
+  ![](https://www.google.com/s2/favicons?domain=https://github.com&sz=32)
+  
+  GitHub
+  
+  +1
+  
+  <br/>
+  
+  Example response assertion:
+  
+  ```
+  test("Registration returns an access token", function () {
+    expect(res.status).to.equal(201);
+    expect(res.body).to.have.property("accessToken");
+    expect(res.body.accessToken).to.be.a("string").and.not.empty;
+  });
+  ```
+  
+  Use the documented success status if confirmed against your actual response; the critical contract is that successful registration provides a usable token.
+  
+  ### Save the token automatically in Bruno
+  
+  In the request's post-response script, you can store the returned token:
+  
+  ```
+  bru.setEnvVar("accessToken", res.body.accessToken);
+  ```
+  
+  Then use the environment variable in protected requests:
+  
+  ```
+  Authorization: Bearer {{accessToken}}
+  ```
+  
+  This is better than manually copying a token every time. Keep the token in a local environment file or other suitable secret storage, and avoid committing secrets to Git.
+  
+  ## E. Create an order — `POST /orders`
+  
+  Example request:
+  
+  ```
+  {
+    "bookId": 1,
+    "customerName": "Venkat Tester"
+  }
+  ```
+  
+  Use a book that is currently available, as returned by the books endpoint.
+  
+  | ID | Scenario | What to test |
+  | --- | --- | --- |
+  | OR-01 | Order an available book | Order is created |
+  | OR-02 | Validate response | Order ID is present |
+  | OR-03 | Omit `bookId` | Required-field validation |
+  | OR-04 | Omit `customerName` | Required-field validation |
+  | OR-05 | Set `bookId` to `null` | Type and null validation |
+  | OR-06 | Send `bookId` as `"1"` | Numeric-string handling |
+  | OR-07 | Send `bookId` as `1.5` | Integer validation |
+  | OR-08 | Send `bookId` as `0` or `-1` | Boundary validation |
+  | OR-09 | Use nonexistent book ID | Invalid-book handling |
+  | OR-10 | Order an unavailable book | Business-rule validation |
+  | OR-11 | Send an empty customer name | Required-value validation |
+  | OR-12 | Send an incorrect content type | Request parsing behavior |
+  | OR-13 | Remove authentication | Request is rejected |
+  | OR-14 | Use an invalid token | Request is rejected |
+  
+  Example tests:
+  
+  ```
+  test("Order creation succeeds", function () {
+    expect(res.status).to.equal(201);
+    expect(res.body).to.have.property("orderId");
+    expect(res.body.orderId).to.be.a("string").and.not.empty;
+  });
+  ```
+  
+  Check the actual response before locking in the success status. For a negative test, assert the observed error status and response shape rather than assuming all invalid values produce the same result.
+  
+  ## F. Get all orders — `GET /orders`
+  
+  This endpoint requires authentication.
+  
+  | ID | Scenario | Expected validation |
+  | --- | --- | --- |
+  | OR-15 | Retrieve orders with valid token | Successful response |
+  | OR-16 | Verify response structure | Returns an array of orders |
+  | OR-17 | Verify a newly created order appears | Matching order ID exists |
+  | OR-18 | Request without token | Authentication rejected |
+  | OR-19 | Request with invalid token | Authentication rejected |
+  | OR-20 | Request with expired token | Authentication rejected, if you can test expiry |
+  
+  Example:
+  
+  ```
+  test("Orders response is an array", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body).to.be.an("array");
+  });
+  ```
+  
+  If the API returns orders belonging to the registered client, validate the returned records against orders you created. Do not assume the service starts with an empty order list.
+  
+  ## G. Get a single order — `GET /orders/:orderId`
+  
+  | ID | Scenario | What to verify |
+  | --- | --- | --- |
+  | OR-21 | Get an existing order | Correct order is returned |
+  | OR-22 | Compare order ID | Matches requested ID |
+  | OR-23 | Get nonexistent order | Usually expect 404; verify actual contract |
+  | OR-24 | Use empty or malformed ID | Validate path handling |
+  | OR-25 | Get order without token | Authentication rejected |
+  | OR-26 | Get order with invalid token | Authentication rejected |
+  
+  Example:
+  
+  ```
+  test("Order ID matches", function () {
+    expect(res.body.id).to.equal(bru.getEnvVar("orderId"));
+  });
+  ```
+  
+  Adapt the assertion to the actual response structure. If the response uses `id` rather than `orderId`, use the field returned by the endpoint.
+  
+  ## H. Update an order — `PATCH /orders/:orderId`
+  
+  Example request:
+  
+  ```
+  {
+    "customerName": "Updated Customer"
+  }
+  ```
+  
+  | ID | Scenario | What to verify |
+  | --- | --- | --- |
+  | OR-27 | Update customer name | Update succeeds |
+  | OR-28 | Fetch the order afterward | New customer name is persisted |
+  | OR-29 | Send an empty JSON object | Observe whether it is accepted |
+  | OR-30 | Omit customer name | Validate partial-update behavior |
+  | OR-31 | Set customer name to empty string | Validate business rules |
+  | OR-32 | Set customer name to `null` | Validate null handling |
+  | OR-33 | Set customer name to a number | Validate data types |
+  | OR-34 | Update nonexistent order | Validate not-found handling |
+  | OR-35 | Update without authentication | Request is rejected |
+  
+  Example verification:
+  
+  ```
+  test("Customer name is updated", function () {
+    expect(res.body.customerName).to.equal("Updated Customer");
+  });
+  ```
+  
+  If the PATCH response does not return the updated order, verify the change with a separate GET request instead.
+  
+  ## I. Delete an order — `DELETE /orders/:orderId`
+  
+  | ID | Scenario | What to verify |
+  | --- | --- | --- |
+  | OR-36 | Delete an existing order | Deletion succeeds |
+  | OR-37 | Fetch deleted order | Order is no longer available |
+  | OR-38 | Delete the same order again | Validate repeated-delete behavior |
+  | OR-39 | Delete nonexistent order | Validate not-found handling |
+  | OR-40 | Delete without authentication | Request is rejected |
+  | OR-41 | Send an unnecessary request body | Validate endpoint behavior |
+  
+  The documentation specifies that the DELETE request body must be empty.
+  
+  ![](https://www.google.com/s2/favicons?domain=https://github.com&sz=32)
+  
+  GitHub
+  
+  <br/>
+  
+  A key point: a successful DELETE response alone is not sufficient. Follow it with a GET request and verify that the resource is no longer available.
+  
+  # 3. Automate the complete workflow in Bruno
+  
+  This is where your test suite becomes more valuable than a collection of independent API requests.
+  
+  Step 1 — Register client
+  
+  POST `/api-clients/`
+  
+  Capture the access token into `accessToken`.
+  
+  Step 2 — Find an available book
+  
+  GET `/books`
+  
+  Find a book whose `available` field is `true`.
+  
+  Step 3 — Create order
+  
+  POST `/orders`
+  
+  Use the selected book ID and save the returned `orderId`.
+  
+  Step 4 — Read order
+  
+  GET `/orders/{{orderId}}`
+  
+  Verify that the order exists and its details match.
+  
+  Step 5 — Update order
+  
+  PATCH `/orders/{{orderId}}`
+  
+  Change the customer name and verify the persisted value.
+  
+  Step 6 — Delete and verify
+  
+  DELETE `/orders/{{orderId}}`
+  
+  Delete the order, then confirm it cannot be retrieved.
+  
+  ## 4. Bruno scripts for dynamic data
+  
+  Since you're already using environment variables and JavaScript scripts in Bruno, I recommend automating these three values:
+  
+  | Variable | Source | Purpose |
+  | --- | --- | --- |
+  | `accessToken` | Client registration response | Authorize protected requests |
+  | `bookId` | Books list response | Choose a book dynamically |
+  | `orderId` | Create order response | Reuse the order ID in GET, PATCH, and DELETE |
+  
+  For example, after creating an order:
+  
+  ```
+  bru.setEnvVar("orderId", res.body.orderId);
+  ```
+  
+  And for a dynamic book selection, in the post-response script of `GET /books`:
+  
+  ```
+  const availableBooks = res.body.filter(
+    book => book.available === true
+  );
+  
+  if (availableBooks.length === 0) {
+    throw new Error("No available books found");
+  }
+  
+  const selectedBook =
+    availableBooks[Math.floor(Math.random() * availableBooks.length)];
+  
+  bru.setEnvVar("bookId", String(selectedBook.id));
+  bru.setEnvVar("selectedBookName", selectedBook.name);
+  ```
+  
+  This assumes the API returns `available` as a Boolean and each book has an `id` and `name`, as described by the API's book model. Run the book-selection request before creating the order.
+  
+  One important detail: your test flow must handle client registration conflicts. If the API rejects an already registered email with HTTP 409, use a unique email for a new registration, or reuse an existing valid token rather than blindly registering the same client on every run.
+  
+  ## 5. Additional quality checks worth adding
+  
+  Beyond the endpoint-specific scenarios, you can strengthen your Bruno suite with:
+  
+  - Response contract validation: verify required fields, data types, and allowed values.
+  - Header validation: check JSON content type and appropriate response headers.
+  - Negative authentication tests: missing, malformed, and invalid tokens.
+  - Boundary-value tests: limit values 0, 1, 20, and 21; malformed IDs; missing fields.
+  - State-transition tests: create → read → update → read → delete → read.
+  - Repeatability tests: run the suite multiple times without depending on hardcoded order IDs.
+  - Failure diagnostics: capture response bodies and useful request context when assertions fail.
+  - CI execution: run the Bruno collection in your CI pipeline and fail the job when required assertions fail.
+  
+  Do not treat response-time checks, security checks, or undocumented input behavior as requirements guaranteed by this API. Define those expectations separately and report discrepancies accurately.
+  
+  ## My recommendation
+  
+  Start with the 40+ endpoint scenarios above, then automate the six-step workflow. For a professional API-testing portfolio, the most valuable deliverable would be a Bruno collection containing:
+  
+  1. Positive and negative test cases for each endpoint.
+  2. Reusable authentication and environment-variable scripts.
+  3. Dynamic book and order IDs.
+  4. Assertions on status codes, response bodies, and persisted changes.
+  5. A repeatable collection run suitable for CI.
+  
+  That gives you practical coverage of REST API testing, JavaScript assertions, data-driven requests, environment management, and end-to-end test automation using Bruno.
+}
