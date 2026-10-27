@@ -5,9 +5,19 @@ meta {
 }
 
 patch {
-  url: 
-  body: none
-  auth: inherit
+  url: {{BASE_URL}}/orders/{{orderId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "customerName": "John Amendies"
+  }
 }
 
 settings {
